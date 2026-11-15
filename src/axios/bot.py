@@ -84,9 +84,22 @@ class Axios(commands.Bot):
         if isinstance(error, commands.BotMissingPermissions):
             await ctx.send("❌ Axios doesn't have permission to do that.")
             return
-        # covers missing arguments and bad mentions, e.g. a member that can't be found
-        if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)):
-            await ctx.send(f"❌ {error}")
+        # missing argument
+        if isinstance(error, commands.MissingRequiredArgument):
+            usage = f"{ctx.clean_prefix}{ctx.command.qualified_name} {ctx.command.signature}"
+            await ctx.send(f"❌ Missing required argument `{error.param.name}`.\nUsage: `{usage}`")
+            return
+
+        # member lookup failed
+        if isinstance(error, commands.MemberNotFound):
+            typed = discord.utils.escape_mentions(error.argument)[:50]
+            await ctx.send(f"❌ Couldn't find user `{typed}`.")
+            return
+
+        # any other bad argument
+        if isinstance(error, commands.BadArgument):
+            usage = f"{ctx.clean_prefix}{ctx.command.qualified_name} {ctx.command.signature}"
+            await ctx.send(f"❌ One of the arguments wasn't valid.\nUsage: `{usage}`")
             return
         # anything else is unexpected, so log it with the full traceback
         log.error("Unhandled error in command %s", ctx.command, exc_info=error)
