@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -61,6 +62,8 @@ class Settings:
     log_level: str = "INFO"
     # the /update-style git pull command is for development; off by default.
     enable_update_command: bool = False
+    # where per-server settings are stored; relative paths depend on the launch folder
+    servers_file: Path = Path("data/servers.json")
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -79,4 +82,5 @@ class Settings:
             owner_ids=_parse_ids("OWNER_IDS"),
             log_level=log_level,
             enable_update_command=_parse_bool("ENABLE_UPDATE_COMMAND"),
+            servers_file=Path(os.getenv("SERVERS_FILE", "").strip() or "data/servers.json"),
         )

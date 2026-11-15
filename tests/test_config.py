@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from axios.config import ConfigError, Settings
@@ -9,6 +11,7 @@ ENV_VARS = (
     "OWNER_IDS",
     "LOG_LEVEL",
     "ENABLE_UPDATE_COMMAND",
+    "SERVERS_FILE",
 )
 
 
@@ -74,3 +77,13 @@ def test_update_command_can_be_enabled(required_env, monkeypatch):
     monkeypatch.setenv("ENABLE_UPDATE_COMMAND", "true")
 
     assert Settings.from_env().enable_update_command is True
+
+
+def test_servers_file_defaults_to_the_data_folder(required_env):
+    assert Settings.from_env().servers_file == Path("data/servers.json")
+
+
+def test_servers_file_can_be_overridden(required_env, monkeypatch):
+    monkeypatch.setenv("SERVERS_FILE", "/srv/axios/servers.json")
+
+    assert Settings.from_env().servers_file == Path("/srv/axios/servers.json")

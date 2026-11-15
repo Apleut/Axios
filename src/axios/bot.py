@@ -8,6 +8,9 @@ import discord
 from discord.ext import commands
 
 from axios.config import Colors, ConfigError, Settings
+from axios.database.servers import ServerStore
+from axios.moderation.converters import AmbiguousUserError
+from axios.moderation.modlogs import ModLogger
 
 log = logging.getLogger("axios")
 
@@ -35,6 +38,9 @@ class Axios(commands.Bot):
         )
         self.settings = settings
         self.restart_requested = False
+        self.servers = ServerStore(settings.servers_file)
+        self.servers.load()
+        self.modlogs = ModLogger(self, channel_lookup=self.servers.mod_log_channel)
 
     async def setup_hook(self) -> None:
         for extension in EXTENSIONS:
@@ -69,11 +75,41 @@ class Axios(commands.Bot):
         await self._update_presence()
 
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+        # ignore unknown commands so typos don't spam the channel
         if isinstance(error, commands.CommandNotFound):
             return
         if isinstance(error, commands.NotOwner):
             await ctx.send("❌ Only the bot owner can use this command.")
             return
+        if isinstance(error, commands.NoPrivateMessage):
+            await ctx.send("❌ This command can only be used in a server.")
+            return
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("❌ You don't have permission to do that.")
+            return
+        if isinstance(error, commands.BotMissingPermissions):
+            await ctx.send("❌ Axios doesn't have permission to do that.")
+            return
+        # missing argument
+        if isinstance(error, commands.MissingRequiredArgument):
+            usage = f"{ctx.clean_prefix}{ctx.command.qualified_name} {ctx.command.signature}"
+            await ctx.send(f"❌ Missing required argument `{error.param.name}`.\nUsage: `{usage}`")
+            return
+        # member lookup failed
+        if isinstance(error, (commands.MemberNotFound, commands.UserNotFound)):
+            typed = discord.utils.escape_mentions(error.argument)[:50]
+            await ctx.send(f"❌ Couldn't find user `{typed}`.")
+            return
+        # a name matched several members
+        if isinstance(error, AmbiguousUserError):
+            await ctx.send(f"❌ {error}")
+            return
+        # any other bad argument
+        if isinstance(error, commands.BadArgument):
+            usage = f"{ctx.clean_prefix}{ctx.command.qualified_name} {ctx.command.signature}"
+            await ctx.send(f"❌ One of the arguments wasn't valid.\nUsage: `{usage}`")
+            return
+        # anything else is unexpected, so log it with the full traceback
         log.error("Unhandled error in command %s", ctx.command, exc_info=error)
 
     async def _update_presence(self) -> None:
@@ -112,6 +148,8 @@ def main() -> None:
             "Privileged intents are not enabled. Turn on Message Content and "
             "Server Members intents in the Discord Developer Portal."
         )
+    except ConfigError as exc:
+        sys.exit(f"Configuration error: {exc}")
     except KeyboardInterrupt:
         log.info("Stopped by keyboard interrupt.")
         return

@@ -28,6 +28,9 @@ htmlcov/
 *.db
 *.sqlite3
 logs/
+data/
+servers.json
+servers.json.tmp
 
 # Executables
 *.swf
