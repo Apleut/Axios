@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 import discord
 from discord.ext import commands
 
+from axios.moderation.converters import UserTarget
+
 if TYPE_CHECKING:
     from axios.bot import Axios
 
@@ -39,9 +41,13 @@ class Ban(commands.Cog):
     @commands.has_permissions(ban_members=True)  # what the invoker needs
     @commands.bot_has_permissions(ban_members=True)  # what the bot needs
     async def ban(
-        self, ctx: commands.Context, user: discord.User, *, reason: str | None = None
+        self, ctx: commands.Context, user: UserTarget, *, reason: str | None = None
     ) -> None:
-        """Ban a user from the server, even if they have left. Usage: ban <user> [reason]"""
+        """Ban a user from the server, even if they have left.
+
+        Usage: ban <mention, ID, or username> [reason]. Quote usernames that contain spaces.
+        Use an ID for people who have left, since usernames only match current members.
+        """
         # refuse targets that can never be banned
         if user.id == ctx.author.id:
             await ctx.send("❌ You can't ban yourself.")
