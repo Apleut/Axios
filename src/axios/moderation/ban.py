@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands
 
 from axios.moderation.converters import UserTarget
+from axios.moderation.modlogs import LogType
 
 if TYPE_CHECKING:
     from axios.bot import Axios
@@ -77,7 +78,13 @@ class Ban(commands.Cog):
             log.warning("Failed to ban %s in guild %s: %s", user.id, ctx.guild.id, exc)
             await ctx.send(f"❌ Failed to ban user: {exc}")
         else:
-            log.info("%s banned %s in guild %s: %s", ctx.author.id, user.id, ctx.guild.id, reason)
+            await self.bot.modlogs.send_log(
+                LogType.BAN,
+                guild=ctx.guild,
+                actor=ctx.author,
+                target=user,
+                description=reason,
+            )
             await ctx.send(f"Banned `{user}` (ID: {user.id}).")
 
     @commands.command(name="unban", aliases=["ub", "pardon"])
@@ -98,7 +105,13 @@ class Ban(commands.Cog):
             log.warning("Failed to unban %s in guild %s: %s", user.id, ctx.guild.id, exc)
             await ctx.send(f"❌ Failed to unban user: {exc}")
         else:
-            log.info("%s unbanned %s in guild %s: %s", ctx.author.id, user.id, ctx.guild.id, reason)
+            await self.bot.modlogs.send_log(
+                LogType.UNBAN,
+                guild=ctx.guild,
+                actor=ctx.author,
+                target=user,
+                description=reason,
+            )
             await ctx.send(f"Unbanned `{user}` (ID: {user.id}).")
 
 
