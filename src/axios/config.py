@@ -52,7 +52,6 @@ def _parse_bool(name: str, default: bool = False) -> bool:
 
 @dataclass(frozen=True)
 class Settings:
-
     discord_token: str
     openai_api_key: str
     command_prefix: str = "$"
