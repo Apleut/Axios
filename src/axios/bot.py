@@ -8,7 +8,9 @@ import discord
 from discord.ext import commands
 
 from axios.config import Colors, ConfigError, Settings
+from axios.database.servers import ServerStore
 from axios.moderation.converters import AmbiguousUserError
+from axios.moderation.modlogs import ModLogger
 
 log = logging.getLogger("axios")
 
@@ -36,6 +38,9 @@ class Axios(commands.Bot):
         )
         self.settings = settings
         self.restart_requested = False
+        self.servers = ServerStore(settings.servers_file)
+        self.servers.load()
+        self.modlogs = ModLogger(self, channel_lookup=self.servers.mod_log_channel)
 
     async def setup_hook(self) -> None:
         for extension in EXTENSIONS:
@@ -143,6 +148,8 @@ def main() -> None:
             "Privileged intents are not enabled. Turn on Message Content and "
             "Server Members intents in the Discord Developer Portal."
         )
+    except ConfigError as exc:
+        sys.exit(f"Configuration error: {exc}")
     except KeyboardInterrupt:
         log.info("Stopped by keyboard interrupt.")
         return
