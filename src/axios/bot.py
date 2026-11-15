@@ -69,11 +69,26 @@ class Axios(commands.Bot):
         await self._update_presence()
 
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+        # ignore unknown commands so typos don't spam the channel
         if isinstance(error, commands.CommandNotFound):
             return
         if isinstance(error, commands.NotOwner):
             await ctx.send("❌ Only the bot owner can use this command.")
             return
+        if isinstance(error, commands.NoPrivateMessage):
+            await ctx.send("❌ This command can only be used in a server.")
+            return
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("❌ You don't have permission to do that.")
+            return
+        if isinstance(error, commands.BotMissingPermissions):
+            await ctx.send("❌ Axios doesn't have permission to do that.")
+            return
+        # covers missing arguments and bad mentions, e.g. a member that can't be found
+        if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)):
+            await ctx.send(f"❌ {error}")
+            return
+        # anything else is unexpected, so log it with the full traceback
         log.error("Unhandled error in command %s", ctx.command, exc_info=error)
 
     async def _update_presence(self) -> None:
