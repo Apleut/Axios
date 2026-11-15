@@ -5,13 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "axios-bot"
 version = "0.1.0"
-description = "An automated moderation Discord bot that uses a machine learning algorithm to intelligently classify and punish messages that violate server rules."
+description = "Free, open-source Discord moderation bot that automates routine moderation while keeping staff in control."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "discord.py>=2.4",
     "python-dotenv>=1.0",
     "openai>=1.0",
+    "pydantic>=2.0",
 ]
 
 [project.optional-dependencies]
