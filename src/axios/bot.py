@@ -8,6 +8,7 @@ import discord
 from discord.ext import commands
 
 from axios.config import Colors, ConfigError, Settings
+from axios.moderation.converters import AmbiguousUserError
 
 log = logging.getLogger("axios")
 
@@ -89,13 +90,15 @@ class Axios(commands.Bot):
             usage = f"{ctx.clean_prefix}{ctx.command.qualified_name} {ctx.command.signature}"
             await ctx.send(f"❌ Missing required argument `{error.param.name}`.\nUsage: `{usage}`")
             return
-
         # member lookup failed
         if isinstance(error, (commands.MemberNotFound, commands.UserNotFound)):
             typed = discord.utils.escape_mentions(error.argument)[:50]
             await ctx.send(f"❌ Couldn't find user `{typed}`.")
             return
-
+        # a name matched several members
+        if isinstance(error, AmbiguousUserError):
+            await ctx.send(f"❌ {error}")
+            return
         # any other bad argument
         if isinstance(error, commands.BadArgument):
             usage = f"{ctx.clean_prefix}{ctx.command.qualified_name} {ctx.command.signature}"
