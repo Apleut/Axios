@@ -39,7 +39,7 @@ class Ban(commands.Cog):
             await ctx.send("❌ You can't ban yourself.")
             return
         if member == ctx.guild.me:
-            await ctx.send("❌ I won't ban myself.")
+            await ctx.send("❌ Well, that's rather rude.")
             return
         if member.id == ctx.guild.owner_id:
             await ctx.send("❌ The server owner can't be banned.")
