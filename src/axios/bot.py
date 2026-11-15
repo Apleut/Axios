@@ -91,7 +91,7 @@ class Axios(commands.Bot):
             return
 
         # member lookup failed
-        if isinstance(error, commands.MemberNotFound):
+        if isinstance(error, (commands.MemberNotFound, commands.UserNotFound)):
             typed = discord.utils.escape_mentions(error.argument)[:50]
             await ctx.send(f"❌ Couldn't find user `{typed}`.")
             return
