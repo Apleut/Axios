@@ -68,9 +68,7 @@ class Axios(commands.Bot):
         log.info("Removed from guild %s (ID: %s)", guild.name, guild.id)
         await self._update_presence()
 
-    async def on_command_error(
-        self, ctx: commands.Context, error: commands.CommandError
-    ) -> None:
+    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         if isinstance(error, commands.CommandNotFound):
             return
         if isinstance(error, commands.NotOwner):
