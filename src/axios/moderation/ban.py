@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-import discord
+# import discord
 from discord.ext import commands
 
 if TYPE_CHECKING:
